@@ -1,16 +1,16 @@
 module uart_tx #(
-    parameter CLK_FREQ = 50000000,  // 50MHz 클럭 기준
-    parameter BAUD_RATE = 115200    // 목표 통신 속도
+    parameter CLK_FREQ = 50000000,  
+    parameter BAUD_RATE = 115200    
 )(
     input wire clk,
     input wire rst_n,
-    input wire tx_start,      // 전송 시작 신호
-    input wire [7:0] data_in, // 보낼 데이터 (8비트)
-    output reg tx_out,        // 출력 핀 (TX)
-    output reg tx_busy        // 전송 중 상태 알림
+    input wire tx_start,    
+    input wire [7:0] data_in, 
+    output reg tx_out,       
+    output reg tx_busy       
 );
 
-    // 상태 머신 정의 (FSM)
+
     localparam IDLE   = 3'b000;
     localparam START  = 3'b001;
     localparam DATA   = 3'b010;
@@ -27,7 +27,7 @@ module uart_tx #(
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             state <= IDLE;
-            tx_out <= 1'b1; // 유휴 상태는 High
+            tx_out <= 1'b1; 
             tx_busy <= 1'b0;
             clk_cnt <= 0;
             bit_idx <= 0;
@@ -44,11 +44,11 @@ module uart_tx #(
                         state <= START;
                         tx_busy <= 1'b1;
                         data_reg <= data_in;
-                        parity_bit <= ^data_in; // 1의 개수가 홀수면 1 (Even Parity)
+                        parity_bit <= ^data_in;
                     end
                 end
 
-                START: begin // 시작 비트 (0)
+                START: begin 
                     tx_out <= 1'b0;
                     if (clk_cnt < CLKS_PER_BIT - 1) clk_cnt <= clk_cnt + 1;
                     else begin
@@ -57,7 +57,7 @@ module uart_tx #(
                     end
                 end
 
-                DATA: begin // 데이터 8비트
+                DATA: begin 
                     tx_out <= data_reg[bit_idx];
                     if (clk_cnt < CLKS_PER_BIT - 1) clk_cnt <= clk_cnt + 1;
                     else begin
@@ -70,7 +70,7 @@ module uart_tx #(
                     end
                 end
 
-                PARITY: begin // 패리티 비트
+                PARITY: begin 
                     tx_out <= parity_bit;
                     if (clk_cnt < CLKS_PER_BIT - 1) clk_cnt <= clk_cnt + 1;
                     else begin
@@ -79,7 +79,7 @@ module uart_tx #(
                     end
                 end
 
-                STOP: begin // 정지 비트 (1)
+                STOP: begin 
                     tx_out <= 1'b1;
                     if (clk_cnt < CLKS_PER_BIT - 1) clk_cnt <= clk_cnt + 1;
                     else begin
